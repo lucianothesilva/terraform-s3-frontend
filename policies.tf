@@ -1,11 +1,11 @@
 resource "aws_iam_policy" "cloudfront_policy" {
   name        = "cloudfront_policy"
   description = "Policy for CloudFront invalidation"
-  policy      = jsonencode({
+  policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Sid = "VisualEditor0",
+        Sid    = "VisualEditor0",
         Effect = "Allow",
         Action = [
           "cloudfront:GetInvalidation",
