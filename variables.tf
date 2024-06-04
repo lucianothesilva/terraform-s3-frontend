@@ -30,9 +30,7 @@ variable "s3_policy_name" {
   default = "s3_policy"
 }
 
-variable "cloudfront_distribution_id" {
-  type = string
-}
+
 variable "cloudflare_email" {
   description = "Cloudflare account email"
   type        = string
