@@ -2,8 +2,12 @@ provider "aws" {
   region = var.region
 }
 
-# Create S3 bucket
-resource "aws_s3_bucket" "frontend-bucket" {
+provider "cloudflare" {
+  api_key = var.cloudflare_api_key
+  email   = var.cloudflare_email
+}
+
+resource "aws_s3_bucket" "s3_bucket" {
   bucket = var.s3_bucket_name
 
   tags = {
@@ -11,3 +15,164 @@ resource "aws_s3_bucket" "frontend-bucket" {
     Environment = "Production"
   }
 }
+# Create ACM Certificate
+resource "aws_acm_certificate" "my_cert" {
+  domain_name       = var.domain_name
+  validation_method = "DNS"
+
+  tags = {
+    Name = "my-cert"
+  }
+}
+
+locals {
+  domain_validation_options = tolist(aws_acm_certificate.my_cert.domain_validation_options)
+}
+
+resource "cloudflare_record" "cert_validation" {
+  count   = length(local.domain_validation_options)
+  zone_id = var.cloudflare_zone_id
+  name    = local.domain_validation_options[count.index].resource_record_name
+  value   = local.domain_validation_options[count.index].resource_record_value
+  type    = local.domain_validation_options[count.index].resource_record_type
+  ttl     = 60
+}
+
+# Validate the certificate
+resource "aws_acm_certificate_validation" "my_cert_validation" {
+  certificate_arn         = aws_acm_certificate.my_cert.arn
+  validation_record_fqdns = [for record in cloudflare_record.cert_validation : record.hostname]
+}
+
+# Create CloudFront Origin Access Identity
+resource "aws_cloudfront_distribution" "cf_distribution" {
+  origin {
+    domain_name = aws_s3_bucket.s3_bucket.bucket_regional_domain_name
+    origin_id   = "myS3Origin"
+
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.frontend_oai.cloudfront_access_identity_path
+    }
+  }
+
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = var.cloudfront_comment
+  default_root_object = "index.html"
+
+  default_cache_behavior {
+    allowed_methods  = ["GET", "HEAD"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "myS3Origin"
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+    compress               = true
+
+    cache_policy_id          = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
+    origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # Use an appropriate existing policy or create a new one
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+
+  logging_config {
+    include_cookies = false
+    bucket          = aws_s3_bucket.s3_bucket.bucket_regional_domain_name
+    prefix          = "logs/"
+  }
+
+  tags = {
+    Name        = "cf-distribution"
+    Environment = "Production"
+  }
+}
+
+resource "aws_cloudfront_origin_access_identity" "frontend_oai" {
+}
+
+resource "aws_iam_group" "frontend_group" {
+  name = var.group_name
+}
+
+resource "aws_iam_user" "frontend_user" {
+  name = var.user_name
+}
+
+resource "aws_iam_group_membership" "frontend_group_membership" {
+  name  = "frontend_group_membership"
+  users = [aws_iam_user.frontend_user.name]
+  group = aws_iam_group.frontend_group.name
+}
+
+resource "aws_iam_policy" "cloudfront_policy" {
+  name        = var.cloudfront_policy_name
+  description = "Policy for CloudFront invalidation"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "VisualEditor0",
+        Effect = "Allow",
+        Action = [
+          "cloudfront:GetInvalidation",
+          "cloudfront:CreateInvalidation"
+        ],
+        Resource = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${var.cloudfront_distribution_id}"
+      }
+    ]
+  })
+}
+
+# Create IAM policy for S3
+resource "aws_iam_policy" "s3_policy" {
+  name        = var.s3_policy_name
+  description = "Policy for S3 access"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:ListBucket"
+        ],
+        Resource = [
+          "arn:aws:s3:::${aws_s3_bucket.s3_bucket.bucket}/*",
+          "arn:aws:s3:::${aws_s3_bucket.s3_bucket.bucket}"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "attach_cloudfront_policy" {
+  name       = "attach_cloudfront_policy"
+  policy_arn = aws_iam_policy.cloudfront_policy.arn
+  groups     = [aws_iam_group.frontend_group.name]
+}
+
+resource "aws_iam_policy_attachment" "attach_s3_policy" {
+  name       = "attach_s3_policy"
+  policy_arn = aws_iam_policy.s3_policy.arn
+  groups     = [aws_iam_group.frontend_group.name]
+}
+
+data "aws_caller_identity" "current" {}
