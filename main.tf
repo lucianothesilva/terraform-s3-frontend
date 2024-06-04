@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 # Create S3 bucket
-resource "aws_s3_bucket" "my_bucket" {
+resource "aws_s3_bucket" "frontend-bucket" {
   bucket = var.s3_bucket_name
 
   tags = {
