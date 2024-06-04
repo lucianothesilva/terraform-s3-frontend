@@ -1,5 +1,6 @@
 ### Todo
 
+- [ ] S3 Bucket 
 - [ ] Cloudfront Distribution  
 - [ ] IAM
   - [ ] Group
