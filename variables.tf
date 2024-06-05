@@ -9,7 +9,7 @@ variable "s3_bucket_name" {
 
 variable "cloudfront_comment" {
   type    = string
-  default = "My CloudFront Distribution"
+  default = "Teste Luciano"
 }
 
 variable "group_name" {
