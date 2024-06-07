@@ -44,8 +44,8 @@ resource "aws_cloudfront_origin_access_identity" "frontend_oai" {}
 
 resource "aws_cloudfront_distribution" "cf_distribution" {
   origin {
-    domain_name = aws_s3_bucket.s3_bucket.bucket_regional_domain_name
-    origin_id   = "myS3Origin"
+    domain_name = aws_s3_bucket.s3_bucket.bucket_domain_name
+    origin_id   = aws_cloudfront_origin_access_identity.frontend_oai.id
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.frontend_oai.cloudfront_access_identity_path
@@ -61,7 +61,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
 
   custom_error_response {
     error_caching_min_ttl = 300
-    error_code            = 404
+    error_code            = 403
     response_page_path    = "/index.html"
     response_code         = 200
   }
@@ -69,7 +69,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "myS3Origin"
+    target_origin_id       = aws_cloudfront_origin_access_identity.frontend_oai.id
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
     default_ttl            = 3600
@@ -77,7 +77,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     compress               = true
 
     cache_policy_id          = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
-    origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # Use an appropriate existing policy or create a new one
+    origin_request_policy_id = null # Use an appropriate existing policy or create a new one
   }
 
   restrictions {
@@ -137,20 +137,17 @@ resource "aws_s3_bucket_policy" "s3_bucket_policy" {
   bucket = aws_s3_bucket.s3_bucket.id
 
   policy = jsonencode({
-    Version = "2012-10-17",
+    Version = "2008-10-17",
+    Id      = "PolicyForCloudFrontPrivateContent",
     Statement = [
       {
-        Effect = "Allow",
+        Sid       = "1",
+        Effect    = "Allow",
         Principal = {
-          Service = "cloudfront.amazonaws.com"
+          AWS = aws_cloudfront_origin_access_identity.frontend_oai.iam_arn
         },
-        Action   = "s3:PutObject",
-        Resource = "${aws_s3_bucket.s3_bucket.arn}/*",
-        Condition = {
-          StringEquals = {
-            "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.cf_distribution.id}"
-          }
-        }
+        Action   = "s3:GetObject",
+        Resource = "${aws_s3_bucket.s3_bucket.arn}/*"
       }
     ]
   })
