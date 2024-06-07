@@ -15,7 +15,7 @@ resource "aws_s3_bucket" "s3_bucket" {
   }
 }
 
-# Certificate
+# Certificado SSL
 resource "aws_acm_certificate" "my_cert" {
   domain_name       = var.domain_name
   validation_method = "DNS"
@@ -23,6 +23,7 @@ resource "aws_acm_certificate" "my_cert" {
 
 locals {
   domain_validation_options = tolist(aws_acm_certificate.my_cert.domain_validation_options)
+  origin_id                 = "${var.s3_bucket_name}.${var.region}"
 }
 
 resource "cloudflare_record" "cert_validation" {
@@ -39,13 +40,13 @@ resource "aws_acm_certificate_validation" "my_cert_validation" {
   validation_record_fqdns = [for record in cloudflare_record.cert_validation : record.hostname]
 }
 
-# Create CloudFront Origin Access Identity
+# CloudFront
 resource "aws_cloudfront_origin_access_identity" "frontend_oai" {}
 
 resource "aws_cloudfront_distribution" "cf_distribution" {
   origin {
     domain_name = aws_s3_bucket.s3_bucket.bucket_domain_name
-    origin_id   = aws_cloudfront_origin_access_identity.frontend_oai.id
+    origin_id   = local.origin_id
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.frontend_oai.cloudfront_access_identity_path
@@ -69,7 +70,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = aws_cloudfront_origin_access_identity.frontend_oai.id
+    target_origin_id       = local.origin_id
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
     default_ttl            = 3600
@@ -77,7 +78,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     compress               = true
 
     cache_policy_id          = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
-    origin_request_policy_id = null # Use an appropriate existing policy or create a new one
+    origin_request_policy_id = null 
   }
 
   restrictions {
