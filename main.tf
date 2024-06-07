@@ -89,6 +89,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
  viewer_certificate {
     acm_certificate_arn = aws_acm_certificate.my_cert.arn
     ssl_support_method  = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 }
 
@@ -179,4 +180,11 @@ resource "aws_iam_group_membership" "frontend_group_membership" {
   name  = "frontend_group_membership"
   users = [aws_iam_user.frontend_user.name]
   group = aws_iam_group.frontend_group.name
+}
+resource "cloudflare_record" "cname_record" {
+  zone_id = var.cloudflare_zone_id
+  name    = var.domain_name
+  value   = aws_cloudfront_distribution.cf_distribution.domain_name
+  type    = "CNAME"
+  ttl     = 300
 }
