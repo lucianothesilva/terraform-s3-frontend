@@ -52,7 +52,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
       origin_access_identity = aws_cloudfront_origin_access_identity.frontend_oai.cloudfront_access_identity_path
     }
   }
-  
+
   enabled             = true
   is_ipv6_enabled     = true
   comment             = var.cloudfront_comment
@@ -78,7 +78,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     compress               = true
 
     cache_policy_id          = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
-    origin_request_policy_id = null 
+    origin_request_policy_id = null
   }
 
   restrictions {
@@ -87,9 +87,9 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     }
   }
 
- viewer_certificate {
-    acm_certificate_arn = aws_acm_certificate.my_cert.arn
-    ssl_support_method  = "sni-only"
+  viewer_certificate {
+    acm_certificate_arn      = aws_acm_certificate.my_cert.arn
+    ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
 }
@@ -143,8 +143,8 @@ resource "aws_s3_bucket_policy" "s3_bucket_policy" {
     Id      = "PolicyForCloudFrontPrivateContent",
     Statement = [
       {
-        Sid       = "1",
-        Effect    = "Allow",
+        Sid    = "1",
+        Effect = "Allow",
         Principal = {
           AWS = aws_cloudfront_origin_access_identity.frontend_oai.iam_arn
         },
