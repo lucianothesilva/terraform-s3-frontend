@@ -1,13 +1,9 @@
 resource "aws_cloudfront_origin_access_identity" "frontend_oai" {}
 
-locals {
-  origin_id                 = "${var.s3_bucket_name}.${var.region}"
-}
-
 resource "aws_cloudfront_distribution" "cf_distribution" {
   origin {
-    domain_name = aws_s3_bucket.s3_bucket.bucket_domain_name
-    origin_id   = local.origin_id
+    domain_name = var.bucket_domain_name
+    origin_id   = var.origin_id
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.frontend_oai.cloudfront_access_identity_path
@@ -31,7 +27,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = local.origin_id
+    target_origin_id       = var.origin_id
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
     default_ttl            = 3600
@@ -49,7 +45,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.my_cert.arn
+    acm_certificate_arn      = var.acm_certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }

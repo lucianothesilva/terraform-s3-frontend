@@ -11,7 +11,7 @@ resource "aws_iam_policy" "cloudfront_policy" {
           "cloudfront:GetInvalidation",
           "cloudfront:CreateInvalidation"
         ],
-        Resource = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.cf_distribution.id}"
+        Resource = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${var.cloudfront_distribution_id}"
       }
     ]
   })
@@ -31,8 +31,8 @@ resource "aws_iam_policy" "s3_policy" {
           "s3:ListBucket"
         ],
         Resource = [
-          "arn:aws:s3:::${aws_s3_bucket.s3_bucket.bucket}/*",
-          "arn:aws:s3:::${aws_s3_bucket.s3_bucket.bucket}"
+          "arn:aws:s3:::${var.s3_bucket_name}/*",
+          "arn:aws:s3:::${var.s3_bucket_name}"
         ]
       }
     ]
@@ -40,7 +40,7 @@ resource "aws_iam_policy" "s3_policy" {
 }
 
 resource "aws_s3_bucket_policy" "s3_bucket_policy" {
-  bucket = aws_s3_bucket.s3_bucket.id
+  bucket = var.s3_bucket_name
 
   policy = jsonencode({
     Version = "2008-10-17",
@@ -53,7 +53,7 @@ resource "aws_s3_bucket_policy" "s3_bucket_policy" {
           AWS = aws_cloudfront_origin_access_identity.frontend_oai.iam_arn
         },
         Action   = "s3:GetObject",
-        Resource = "${aws_s3_bucket.s3_bucket.arn}/*"
+        Resource = "${var.s3_bucket_arn}/*"
       }
     ]
   })
@@ -71,9 +71,6 @@ resource "aws_iam_policy_attachment" "attach_s3_policy" {
   groups     = [aws_iam_group.frontend_group.name]
 }
 
-
-data "aws_caller_identity" "current" {}
-
 resource "aws_iam_group" "frontend_group" {
   name = var.group_name
 }
@@ -87,3 +84,5 @@ resource "aws_iam_group_membership" "frontend_group_membership" {
   users = [aws_iam_user.frontend_user.name]
   group = aws_iam_group.frontend_group.name
 }
+
+data "aws_caller_identity" "current" {}
