@@ -6,6 +6,9 @@ provider "cloudflare" {
   api_key = var.cloudflare_api_key
   email   = var.cloudflare_email
 }
+locals {
+  origin_id = "${var.s3_bucket_name}.${var.region}"
+}
 
 module "s3" {
   source         = "./modules/s3"
@@ -13,15 +16,11 @@ module "s3" {
 }
 
 module "acm" {
-  source      = "./modules/acm"
-  region = var.region
-  s3_bucket_name = var.s3_bucket_name
-  domain_name = var.domain_name
+  source             = "./modules/acm"
+  region             = var.region
+  s3_bucket_name     = var.s3_bucket_name
+  domain_name        = var.domain_name
   cloudflare_zone_id = var.cloudflare_zone_id
-}
-
-locals {
-  origin_id                 = "${var.s3_bucket_name}.${var.region}"
 }
 
 module "cloudfront" {
@@ -32,7 +31,7 @@ module "cloudfront" {
   cloudfront_comment  = var.cloudfront_comment
   domain_name         = var.domain_name
   s3_bucket_name      = var.s3_bucket_name
-  s3_bucket_arn = module.s3.bucket_arn
+  s3_bucket_arn       = module.s3.bucket_arn
 }
 
 resource "cloudflare_record" "cname_record" {
