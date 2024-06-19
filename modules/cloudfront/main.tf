@@ -50,3 +50,23 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     minimum_protocol_version = "TLSv1.2_2021"
   }
 }
+
+resource "aws_s3_bucket_policy" "s3_bucket_policy" {
+  bucket = var.s3_bucket_name
+
+  policy = jsonencode({
+    Version = "2008-10-17",
+    Id      = "PolicyForCloudFrontPrivateContent",
+    Statement = [
+      {
+        Sid    = "1",
+        Effect = "Allow",
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.frontend_oai.iam_arn
+        },
+        Action   = "s3:GetObject",
+        Resource = "${var.s3_bucket_arn}/*"
+      }
+    ]
+  })
+}

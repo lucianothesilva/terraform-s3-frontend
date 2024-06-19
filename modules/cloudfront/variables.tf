@@ -24,3 +24,5 @@ variable "acm_certificate_arn" {
 }
 
 variable "s3_bucket_name" {}
+
+variable "s3_bucket_arn" {}
