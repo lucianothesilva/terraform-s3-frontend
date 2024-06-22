@@ -1,4 +1,8 @@
 <!-- BEGIN_TF_DOCS -->
+# tofu-cloudfront-cloudflare
+Simple terraform project to deploy an S3 bucket and CloudFront distribution, registering an SSL certificate from AWS in Cloudflare.
+
+This is my first real project in Terraform so there are lots of things to be improved like a Cloudflare module etc.
 ## Requirements
 
 No requirements.
