@@ -44,7 +44,7 @@ module "cloudfront" {
   cloudfront_comment  = var.cloudfront_comment
   domain_name         = var.domain_name
   s3_bucket_name      = var.s3_bucket_name
-  s3_bucket_arn = module.s3.bucket_arn
+  s3_bucket_arn       = module.s3.bucket_arn
 }
 
 resource "cloudflare_record" "cname_record" {
