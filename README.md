@@ -5,7 +5,10 @@ Simple terraform project to deploy an S3 bucket and CloudFront distribution, reg
 This is my first real project in Terraform so there are lots of things to be improved like a Cloudflare module etc.
 ## Requirements
 
-No requirements.
+| Name | Version |
+|------|---------|
+| <a name="aws-cli"></a> [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html) | 2.16.8 |
+| <a name="opentofu"></a> [opentofu](https://opentofu.org/docs/intro/install/) | 1.7.2|
 
 ## Providers
 
