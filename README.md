@@ -4,7 +4,7 @@ Simple terraform project to deploy an S3 bucket and CloudFront distribution, cre
 
 There are lots of things to be improved like a Cloudflare module etc.
 
-Old main.tf satored on the repo for reference or future refatoring of the code.
+Old main.tf stored on the repo for reference or future refatoring of the code.
 ## Requirements
 
 | Name | Version |
