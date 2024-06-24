@@ -8,3 +8,4 @@ variable "cloudfront_comment" {}
 variable "s3_policy_name" {}
 variable "group_name" {}
 variable "user_name" {}
+variable "cloudfront_policy_name" {}

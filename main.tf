@@ -54,3 +54,14 @@ resource "cloudflare_record" "cname_record" {
   type    = "CNAME"
   ttl     = 300
 }
+
+module "iam_policies" {
+  source                     = "./modules/iam_policies"
+  s3_bucket_name             = var.s3_bucket_name
+  s3_policy_name             = var.s3_policy_name
+  group_name                 = var.group_name
+  s3_bucket_arn              = module.s3.bucket_arn
+  user_name                  = var.user_name
+  cloudfront_distribution_id = module.cloudfront.cloudfront_distribution_id
+  cloudfront_policy_name     = var.cloudfront_policy_name
+}

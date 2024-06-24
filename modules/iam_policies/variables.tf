@@ -4,3 +4,4 @@ variable "s3_bucket_name" {}
 variable "s3_bucket_arn" {}
 variable "group_name" {}
 variable "user_name" {}
+variable "cloudfront_policy_name" {}

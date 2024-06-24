@@ -1,5 +1,5 @@
 resource "aws_iam_policy" "cloudfront_policy" {
-  name        = "cloudfront_policy"
+  name        = var.cloudfront_policy_name
   description = "Policy for CloudFront invalidation"
   policy = jsonencode({
     Version = "2012-10-17",
@@ -38,6 +38,8 @@ resource "aws_iam_policy" "s3_policy" {
     ]
   })
 }
+
+resource "aws_cloudfront_origin_access_identity" "frontend_oai" {}
 
 resource "aws_s3_bucket_policy" "s3_bucket_policy" {
   bucket = var.s3_bucket_name
