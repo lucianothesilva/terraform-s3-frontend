@@ -24,6 +24,7 @@ Old main.tf satored on the repo for reference or future refatoring of the code.
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_cloudfront"></a> [cloudfront](#module\_cloudfront) | ./modules/cloudfront | n/a |
+| <a name="module_iam_policies"></a> [iam\_policies](#module\_iam\_policies) | ./modules/iam_policies | n/a |
 | <a name="module_s3"></a> [s3](#module\_s3) | ./modules/s3 | n/a |
 
 ## Resources
@@ -43,6 +44,7 @@ Old main.tf satored on the repo for reference or future refatoring of the code.
 | <a name="input_cloudflare_email"></a> [cloudflare\_email](#input\_cloudflare\_email) | n/a | `any` | n/a | yes |
 | <a name="input_cloudflare_zone_id"></a> [cloudflare\_zone\_id](#input\_cloudflare\_zone\_id) | n/a | `any` | n/a | yes |
 | <a name="input_cloudfront_comment"></a> [cloudfront\_comment](#input\_cloudfront\_comment) | n/a | `any` | n/a | yes |
+| <a name="input_cloudfront_policy_name"></a> [cloudfront\_policy\_name](#input\_cloudfront\_policy\_name) | n/a | `any` | n/a | yes |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | n/a | `any` | n/a | yes |
 | <a name="input_group_name"></a> [group\_name](#input\_group\_name) | n/a | `any` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | n/a | `any` | n/a | yes |
